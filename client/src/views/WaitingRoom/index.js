@@ -38,6 +38,7 @@ function WaitingRoom() {
 
   useInterval(() => {
     dispatch(game.listenEventStart());
+    dispatch(contract.updateCurrentRoom());
   }, 1000);
 
   return (

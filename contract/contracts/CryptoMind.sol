@@ -25,10 +25,13 @@ contract CryptoMind {
     mapping(address => uint256) answers;
   }
 
+  uint256 FEE_AMOUNT = 5;
+
   address public manager;
   Room[] public rooms;
   uint256[] public waitingRoom;
   mapping(address => uint256) public playerRoom;
+  uint256 public withdrawableBalance;
 
   event StartGame(uint256 indexed roomId, uint256 seed, uint256 blockStart, uint256 blockTimeout);
   event JoinRoom(uint256 indexed roomId, address newPlayer);
@@ -100,6 +103,7 @@ contract CryptoMind {
 
   function removePlayerInWaitingRoom(uint256 _roomId, address _player) internal {
     Room storage room = rooms[_roomId];
+    address(uint160(_player)).transfer(room.bounty);
     for (uint256 i = 0; i < room.players.length; i++) {
       if (_player == room.players[i]) {
         room.players[i] = room.players[room.players.length - 1];
@@ -260,11 +264,13 @@ contract CryptoMind {
 
   function shareBounty(uint256 roomId) internal {
     Room storage room = rooms[roomId];
-    uint256 totalBounty = room.bounty * room.roomSize;
     if (room.highscore == 0) {
       room.result = 1;
+      withdrawableBalance += room.bounty * room.roomSize;
       return;
     }
+    uint256 totalBounty = (room.bounty * room.roomSize * (100 - FEE_AMOUNT)) / 100;
+    withdrawableBalance += room.bounty * room.roomSize - totalBounty;
     uint8 winnerCount = 0;
 
     //Find winners
@@ -310,9 +316,10 @@ contract CryptoMind {
     }
   }
 
-  function withdraw(uint256 amount) external {
-    require(msg.sender == manager, 'Only manager');
+  function withdraw(uint256 amount) external onlyOwner {
+    require(amount <= withdrawableBalance, 'amount withdraw must be less than withdrawableBalance');
     msg.sender.transfer(amount);
+    withdrawableBalance -= amount;
   }
 
   function getWaitingRoom() public view returns (uint256[] memory arr) {
@@ -321,6 +328,15 @@ contract CryptoMind {
 
   function getPlayerRoom(uint256 roomId) public view returns (address payable[] memory) {
     return rooms[roomId].players;
+  }
+
+  function getBalance() public view returns (uint256) {
+    return address(this).balance;
+  }
+
+  function adjustFee(uint256 newFee) external onlyOwner {
+    require(newFee < 100 && newFee > 0, 'newFee must be between 0 and 100');
+    FEE_AMOUNT = newFee;
   }
 
   function() external payable {}

@@ -7,6 +7,7 @@ import RedirectRouter from 'components/RedirectRouter';
 import CreateGame from 'views/CreateGame';
 import AvatarUser from 'components/AvatarUser';
 import * as room from 'actions/contractAction';
+import * as contract from 'actions/contractAction';
 
 import './battleMode.css';
 import PixelButton from 'components/PixelButton';
@@ -31,6 +32,7 @@ function BattleMode() {
 
   useInterval(() => {
     dispatch(room.updateWaitingRoom());
+    dispatch(contract.updateCurrentRoom());
   }, 2000);
 
   function selectRoom(id, bounty) {
