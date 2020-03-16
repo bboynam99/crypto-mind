@@ -27,7 +27,6 @@ function BattleGame() {
   }
   let history = useHistory();
   useEffect(() => {
-    dispatch(gameAction.updateScore(0));
     dispatch(game.listenEventStart());
     setTargetTime(Date.now() + timePerQues * 1000);
   }, [contractStatus.blockStart, dispatch, timePerQues]);
