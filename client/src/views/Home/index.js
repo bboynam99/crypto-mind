@@ -1,18 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Row, Col, Layout } from 'antd';
 import { Link, useHistory } from 'react-router-dom';
 import AvatarUser from 'components/AvatarUser';
-import { useSelector } from 'react-redux';
-import './home.css';
+import { useSelector, useDispatch } from 'react-redux';
 import PixelButton from 'components/PixelButton';
+import * as room from 'actions/contractAction';
+
+import './home.css';
+import RedirectRouter from 'components/RedirectRouter';
 
 const { Header, Content, Footer } = Layout;
 
 function Home() {
   let history = useHistory();
+
   const infoStatus = useSelector((state) => state.infoStatus);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(room.updateCurrentRoom());
+  }, [dispatch, infoStatus.userAddress]);
+
   return (
     <div>
+      <RedirectRouter redirectTo='/' />
+
       <Layout>
         <Header>
           <Row type='flex' justify='space-between'>

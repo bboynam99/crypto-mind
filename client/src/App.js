@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import useInterval from './useInterval';
 import * as getUserInfo from './actions/getInfoAction';
+import * as contract from 'actions/contractAction';
 import Router from './router';
 
 import './App.css';
@@ -18,8 +19,13 @@ function App() {
     getWeb3();
   });
 
+  useEffect(() => {
+    dispatch(contract.updateCurrentBlock());
+  }, [dispatch]);
+
   useInterval(() => {
     dispatch(getUserInfo.getProfile());
+    dispatch(contract.updateCurrentBlock());
   }, 2000);
 
   return (

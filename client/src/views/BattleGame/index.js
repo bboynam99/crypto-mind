@@ -39,7 +39,6 @@ function BattleGame() {
 
   useInterval(() => {
     dispatch(contract.updateCurrentRoom());
-    dispatch(contract.updateCurrentBlock());
   }, 1000);
 
   function onFinish() {

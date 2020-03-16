@@ -14,10 +14,9 @@ import PixelButton from 'components/PixelButton';
 const { Header, Content, Footer } = Layout;
 
 function WaitingRoom() {
-  const roomStatus = useSelector((state) => state.contractStatus);
   const contractStatus = useSelector((state) => state.contractStatus);
   const infoStatus = useSelector((state) => state.infoStatus);
-  const currentGame = roomStatus.currentGame;
+  const currentGame = contractStatus.currentGame;
   const dispatch = useDispatch();
 
   let history = useHistory();
@@ -26,7 +25,7 @@ function WaitingRoom() {
     dispatch(game.listenEventStart());
     dispatch(game.listenJoinRoom());
     dispatch(game.listenQuitRoom());
-  }, [roomStatus.blockStart, dispatch, currentGame]);
+  }, [contractStatus.blockStart, dispatch, currentGame]);
 
   useEffect(() => {
     if (!contractStatus.currentGame) dispatch(contract.updateCurrentRoom());
@@ -42,7 +41,7 @@ function WaitingRoom() {
 
   return (
     <Layout>
-      <RedirectRouter />
+      <RedirectRouter redirectTo='/battle' />
       <Header>
         <Row type='flex' justify='space-between'>
           <Col xs={4}>
