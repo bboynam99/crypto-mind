@@ -97,6 +97,7 @@ export const genQuestionIncLv = (seed, numQuestion) => {
     var quesAns = {};
     incLevel = parseInt(i / 3);
     if (i === numQuestion - 1) incLevel = parseInt(i / 3) + 1;
+    quesAns.quesNumber = i + 1;
     quesAns.ques = simplify(buildTree(2 + incLevel).toString());
     quesAns.ans = genAnswer(quesAns.ques);
     questions.push(quesAns);

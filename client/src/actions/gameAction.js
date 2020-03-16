@@ -23,13 +23,6 @@ export const updateScore = (score) => async (dispatch) => {
   });
 };
 
-export const updateGameResult = (score) => async (dispatch) => {
-  dispatch({
-    type: SCORE,
-    score
-  });
-};
-
 export const getResultOfRoom = () => async (dispatch, getState) => {
   const state = getState();
   let cryptoMind = state.contractStatus.cryptoMind;
@@ -86,6 +79,19 @@ export const listenEventStart = () => async (dispatch, getState) => {
       if (res) {
         let battleQuestions = genQuestionIncLv(res.seed, 10);
 
+        let blockPerQues = (currentGame.blockTimeout - 6) / 10;
+        let currentQuestion;
+        if (currentBlock !== currentGame.blockStart) {
+          // rounded up
+          currentQuestion = Math.ceil((currentBlock - currentGame.blockStart) / blockPerQues);
+        } else {
+          currentQuestion = 0;
+        }
+
+        console.log(battleQuestions);
+        // update currentQuestion
+        dispatch(updateCurrentQuestion(currentQuestion));
+
         dispatch({
           type: UPDATE_QUESTIONS,
           battleQuestions
@@ -103,6 +109,21 @@ export const listenEventStart = () => async (dispatch, getState) => {
       let res = await getStartGame(currentBlock, contractAddress, currentGame.roomId, chainUrl);
       if (res) {
         let battleQuestions = genQuestionIncLv(res.seed, 10);
+
+        let blockPerQues = (currentGame.blockTimeout - 6) / 10;
+        let currentQuestion;
+        if (currentBlock !== currentGame.blockStart) {
+          // rounded up
+          currentQuestion = Math.ceil((currentBlock - currentGame.blockStart) / blockPerQues);
+        } else {
+          currentQuestion = 0;
+        }
+
+        console.log(battleQuestions);
+
+        // update currentQuestion
+        dispatch(updateCurrentQuestion(currentQuestion));
+
         dispatch({
           type: UPDATE_QUESTIONS,
           battleQuestions
