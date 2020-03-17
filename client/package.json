@@ -7,6 +7,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "antd": "^3.26.8",
+    "crypto-js": "^4.0.0",
     "dom-to-image": "2.6.0",
     "prettier": "^1.19.1",
     "react": "^16.12.0",

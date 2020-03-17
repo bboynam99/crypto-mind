@@ -185,6 +185,9 @@ export const createRoom = (bounty, roomSize, blockTimeout) => async (dispatch, g
     message.warning(msg);
   } else {
     const from = state.infoStatus.userAddress;
+    // remove score in localstorage
+    localStorage.removeItem(`Crypto_${from}_score`);
+
     bounty = web3.utils.toWei(bounty, 'ether');
     await crytoMind.methods
       .createRoom(bounty, roomSize, blockTimeout)
@@ -207,6 +210,9 @@ export const joinRoom = (roomID, bounty) => async (dispatch, getState) => {
     message.warning(msg);
   } else {
     const from = state.infoStatus.userAddress;
+    // remove score in localstorage
+    localStorage.removeItem(`Crypto_${from}_score`);
+
     bounty = web3.utils.toWei(bounty, 'ether');
 
     await crytoMind.methods

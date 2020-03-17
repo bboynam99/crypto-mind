@@ -3,6 +3,7 @@ import { checkBeforeDoTransaction } from 'actions/getInfoAction';
 import { CURRENT_ROOM } from 'actions/contractAction';
 import { getStartGame } from 'utils/getRpc';
 import CryptoMind from 'contracts/CryptoMind.json';
+import CryptoJS from 'crypto-js';
 
 export const CURRENT_QUES = 'CURRENT_QUES';
 export const SCORE = 'SCORE';
@@ -16,14 +17,16 @@ export const updateCurrentQuestion = (currentQues) => async (dispatch) => {
   });
 };
 
-export const updateScore = (score) => async (dispatch) => {
-  dispatch({
-    type: SCORE,
-    score
-  });
-};
-
-export const updateGameResult = (score) => async (dispatch) => {
+export const updateScore = (score) => async (dispatch, getState) => {
+  const state = getState();
+  let currentGame = state.contractStatus.currentGame;
+  let userAddress = state.infoStatus.userAddress;
+  var scoreEncrypt = CryptoJS.AES.encrypt(
+    currentGame.roomId + '_' + score.toString(),
+    process.env.REACT_APP_SECRET_KEY
+  ).toString();
+  localStorage.setItem(`Crypto_${userAddress}_score`, scoreEncrypt);
+  score = parseInt(score);
   dispatch({
     type: SCORE,
     score
@@ -75,6 +78,7 @@ export const listenEventStart = () => async (dispatch, getState) => {
     const networkId = process.env.REACT_APP_TOMO_ID;
     const contractAddress = CryptoMind.networks[networkId].address;
     const chainUrl = process.env.REACT_APP_BLOCKCHAIN_URL;
+    const userAddress = state.infoStatus.userAddress;
 
     if (currentGame.blockStart > 0) {
       let res = await getStartGame(
@@ -85,6 +89,30 @@ export const listenEventStart = () => async (dispatch, getState) => {
       );
       if (res) {
         let battleQuestions = genQuestionIncLv(res.seed, 10);
+
+        // update current Question
+        let blockPerQues = (currentGame.blockTimeout - 6) / 10;
+        let currentQuestion;
+        if (currentBlock !== currentGame.blockStart) {
+          // rounded up
+          currentQuestion = Math.ceil((currentBlock - currentGame.blockStart) / blockPerQues);
+        } else {
+          currentQuestion = 0;
+        }
+        dispatch(updateCurrentQuestion(currentQuestion));
+
+        // update current Score
+        let score;
+        if ((score = localStorage.getItem(`Crypto_${userAddress}_score`))) {
+          //if localStorage have score
+          let bytes = CryptoJS.AES.decrypt(score, process.env.REACT_APP_SECRET_KEY);
+          let scoreOfRoom = bytes.toString(CryptoJS.enc.Utf8).split('_');
+          //compare roomId if correct save score , wrong score = 0
+          scoreOfRoom[0] === currentGame.roomId ? (score = scoreOfRoom[1]) : (score = 0);
+        } else {
+          score = 0;
+        }
+        dispatch(updateScore(score));
 
         dispatch({
           type: UPDATE_QUESTIONS,
@@ -103,6 +131,31 @@ export const listenEventStart = () => async (dispatch, getState) => {
       let res = await getStartGame(currentBlock, contractAddress, currentGame.roomId, chainUrl);
       if (res) {
         let battleQuestions = genQuestionIncLv(res.seed, 10);
+
+        // update currentQuestion
+        let blockPerQues = (currentGame.blockTimeout - 6) / 10;
+        let currentQuestion;
+        if (currentBlock !== currentGame.blockStart) {
+          // rounded up
+          currentQuestion = Math.ceil((currentBlock - currentGame.blockStart) / blockPerQues);
+        } else {
+          currentQuestion = 0;
+        }
+        dispatch(updateCurrentQuestion(currentQuestion));
+
+        // update current Score
+        let score;
+        if ((score = localStorage.getItem(`Crypto_${userAddress}_score`))) {
+          //if localStorage have score
+          let bytes = CryptoJS.AES.decrypt(score, process.env.REACT_APP_SECRET_KEY);
+          let scoreOfRoom = bytes.toString(CryptoJS.enc.Utf8).split('_');
+          //compare roomId if correct save score , wrong score = 0
+          scoreOfRoom[0] === currentGame.roomId ? (score = scoreOfRoom[1]) : (score = 0);
+        } else {
+          score = 0;
+        }
+        dispatch(updateScore(score));
+
         dispatch({
           type: UPDATE_QUESTIONS,
           battleQuestions

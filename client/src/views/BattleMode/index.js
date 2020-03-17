@@ -49,7 +49,7 @@ function BattleMode() {
 
   return (
     <Layout>
-      <RedirectRouter />
+      <RedirectRouter redirectTo='/battle' />
       <Modal
         title=''
         visible={visible}

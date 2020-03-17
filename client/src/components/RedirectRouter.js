@@ -1,21 +1,10 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import useInterval from 'useInterval';
-import * as contract from 'actions/contractAction';
 
-function RedirectRouter() {
+function RedirectRouter({ redirectTo }) {
   const currentGame = useSelector((state) => state.contractStatus.currentGame);
   const currentBlock = useSelector((state) => state.contractStatus.currentBlock);
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(contract.updateCurrentBlock());
-  }, [dispatch]);
-
-  useInterval(() => {
-    dispatch(contract.updateCurrentBlock());
-  }, 2000);
 
   return (
     <div>
@@ -25,12 +14,12 @@ function RedirectRouter() {
             <Redirect to='/waiting' />
           ) : parseInt(currentBlock) >
             parseInt(currentGame.blockStart) + parseInt(currentGame.blockTimeout) ? (
-            <Redirect to='/battle' />
+            <Redirect to={redirectTo} />
           ) : (
             <Redirect to='/battleGame' />
           )
         ) : (
-          <Redirect to='/battle' />
+          <Redirect to={redirectTo} />
         )
       ) : (
         <></>

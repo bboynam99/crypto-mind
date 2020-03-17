@@ -25,7 +25,6 @@ function Reward() {
   useInterval(() => {
     dispatch(contract.updateCurrentRoom());
     dispatch(gameActions.getResultOfRoom());
-    dispatch(contract.updateCurrentBlock());
   }, 1000);
 
   return (

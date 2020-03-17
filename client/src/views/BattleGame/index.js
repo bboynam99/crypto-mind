@@ -22,13 +22,11 @@ function BattleGame() {
   const [targetTime, setTargetTime] = useState(Date.now() + timePerQues * 1000);
   const [isAnswer, setIsAnswer] = useState(false);
   if (contractStatus.currentGame) {
-    // 4 block for submit
+    // 6 block for submit
     timePerQues = ((contractStatus.currentGame.blockTimeout - 6) / 10) * 2;
   }
   let history = useHistory();
   useEffect(() => {
-    dispatch(gameAction.updateCurrentQuestion(0));
-    dispatch(gameAction.updateScore(0));
     dispatch(game.listenEventStart());
     setTargetTime(Date.now() + timePerQues * 1000);
   }, [contractStatus.blockStart, dispatch, timePerQues]);
@@ -39,11 +37,10 @@ function BattleGame() {
 
   useInterval(() => {
     dispatch(contract.updateCurrentRoom());
-    dispatch(contract.updateCurrentBlock());
   }, 1000);
 
   function onFinish() {
-    if (gameStatus.currentQues === 9) {
+    if (gameStatus.currentQues >= 9) {
       message.loading('Ready for submit', 1).then(() => dispatch(contractAction.submitAnswer()));
     } else {
       dispatch(gameAction.updateCurrentQuestion(gameStatus.currentQues + 1));
