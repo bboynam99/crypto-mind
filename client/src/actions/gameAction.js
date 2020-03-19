@@ -192,17 +192,23 @@ export const listenJoinRoom = () => async (dispatch, getState) => {
       )
       .on('data', (events) => {
         if (events) {
-          let players = currentGame.players;
-          let newPlayer = events.returnValues['newPlayer'];
-          if (players.indexOf(newPlayer) < 0 && players.indexOf(undefined) >= 0) {
-            players[players.indexOf(undefined)] = newPlayer;
-            currentGame.playerCount++;
+          // if room need 1 player to start => no need to update joinroom
+          if (
+            currentGame.players.filter((player) => typeof player === 'string').length + 1 !==
+            parseInt(currentGame.roomSize)
+          ) {
+            let players = currentGame.players;
+            let newPlayer = events.returnValues['newPlayer'];
+            if (players.indexOf(newPlayer) < 0 && players.indexOf(undefined) >= 0) {
+              players[players.indexOf(undefined)] = newPlayer;
+              currentGame.playerCount++;
+            }
+            currentGame.players = players;
+            dispatch({
+              type: CURRENT_ROOM,
+              currentGame
+            });
           }
-          currentGame.players = players;
-          dispatch({
-            type: CURRENT_ROOM,
-            currentGame
-          });
         }
       })
       .on('error', console.error);
