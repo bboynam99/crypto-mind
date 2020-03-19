@@ -1,9 +1,10 @@
 import CryptoMind from 'contracts/CryptoMind.json';
 import { checkBeforeDoTransaction } from 'actions/getInfoAction';
-import { listenEventStart } from 'actions/gameAction';
+import { listenEventStart, listenQuitRoom, listenJoinRoom } from 'actions/gameAction';
 import { message } from 'antd';
 import getBlockNumber from 'utils/getBlockNumber';
 import { getStartGame, getTrxByHash } from 'utils/getRpc';
+import Web3 from 'web3';
 
 export const CURRENT_ROOM = 'CURRENT_ROOM';
 export const SCORE = 'SCORE';
@@ -11,6 +12,7 @@ export const WAITING_ROOM = 'WAITING_ROOM';
 export const GAME_STATUS = 'GAME_STATUS';
 export const INIT_CONTRACT = 'INIT_CONTRACT';
 export const CURRENT_BLOCK = 'CURRENT_BLOCK';
+export const INIT_SOCKET = 'INIT_SOCKET';
 
 export const updateWaitingRoom = () => async (dispatch, getState) => {
   const state = getState();
@@ -139,7 +141,6 @@ export const updateCurrentRoom = () => async (dispatch, getState) => {
       return;
     } else {
       let currentGame = await crytoMind.methods.roomOf(from).call({ from });
-
       currentGame.bounty = web3.utils.fromWei(currentGame.bounty);
       currentGame.players = await crytoMind.methods
         .getPlayerRoom(currentGame.roomId)
@@ -305,15 +306,52 @@ export const updateCurrentBlock = () => async (dispatch, getState) => {
 export const initContract = () => async (dispatch, getState) => {
   const state = getState();
   let web3 = state.infoStatus.web3;
+  let provider = new Web3.providers.WebsocketProvider('wss://ws.testnet.tomochain.com');
+  let web3Socket = new Web3(provider);
+  dispatch(setUpProvider(provider));
   if (web3) {
     const networkId = process.env.REACT_APP_TOMO_ID;
     let cryptoMindAddress = CryptoMind.networks[networkId].address;
     let cryptoMind = new web3.eth.Contract(CryptoMind.abi, cryptoMindAddress, {
       transactionConfirmationBlocks: 1
     });
+    let cryptoMindSocket = new web3Socket.eth.Contract(CryptoMind.abi, cryptoMindAddress, {
+      transactionConfirmationBlocks: 1
+    });
     dispatch({
       type: INIT_CONTRACT,
-      cryptoMind
+      cryptoMind,
+      cryptoMindSocket
     });
   }
+};
+
+const setUpProvider = (provider) => async (dispatch) => {
+  provider.on('connect', () => console.log('WS Connected'));
+  provider.on('error', (e) => {
+    console.log('WS error', e);
+    dispatch(restartReadWeb3());
+  });
+  provider.on('end', (e) => {
+    console.log('WS closed');
+    console.log('Attempting to reconnect...');
+    dispatch(restartReadWeb3());
+  });
+};
+
+const restartReadWeb3 = () => async (dispatch) => {
+  let provider = new Web3.providers.WebsocketProvider('wss://ws.testnet.tomochain.com');
+  let web3Socket = new Web3(provider);
+  dispatch(setUpProvider(provider));
+  const networkId = process.env.REACT_APP_TOMO_ID;
+  let cryptoMindAddress = CryptoMind.networks[networkId].address;
+  let cryptoMindSocket = new web3Socket.eth.Contract(CryptoMind.abi, cryptoMindAddress, {
+    transactionConfirmationBlocks: 1
+  });
+  dispatch({
+    type: INIT_SOCKET,
+    cryptoMindSocket
+  });
+  dispatch(listenJoinRoom());
+  dispatch(listenQuitRoom());
 };

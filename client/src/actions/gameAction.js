@@ -175,18 +175,23 @@ export const listenEventStart = () => async (dispatch, getState) => {
 
 export const listenJoinRoom = () => async (dispatch, getState) => {
   const state = getState();
-  let cryptoMind = state.contractStatus.cryptoMind;
+  let cryptoMindSocket = state.contractStatus.cryptoMindSocket;
   let currentGame = state.contractStatus.currentGame;
   let web3 = state.infoStatus.web3;
   if (currentGame && web3) {
     let currentBlock = state.contractStatus.currentBlock;
-    cryptoMind.events
+    cryptoMindSocket.events
       .JoinRoom(
         {
           filter: { roomId: [currentGame.roomId] },
           fromBlock: currentBlock
         },
-        function(error, events) {
+        function(error) {
+          console.log(error);
+        }
+      )
+      .on('data', (events) => {
+        if (events) {
           let players = currentGame.players;
           let newPlayer = events.returnValues['newPlayer'];
           if (players.indexOf(newPlayer) < 0 && players.indexOf(undefined) >= 0) {
@@ -199,25 +204,30 @@ export const listenJoinRoom = () => async (dispatch, getState) => {
             currentGame
           });
         }
-      )
+      })
       .on('error', console.error);
   }
 };
 
 export const listenQuitRoom = () => async (dispatch, getState) => {
   const state = getState();
-  let cryptoMind = state.contractStatus.cryptoMind;
+  let cryptoMindSocket = state.contractStatus.cryptoMindSocket;
   let currentGame = state.contractStatus.currentGame;
   let web3 = state.infoStatus.web3;
   if (currentGame && web3) {
     let currentBlock = state.contractStatus.currentBlock;
-    cryptoMind.events
+    cryptoMindSocket.events
       .QuitRoom(
         {
           filter: { roomId: [currentGame.roomId] },
           fromBlock: currentBlock
         },
-        function(error, events) {
+        function(error) {
+          console.log(error);
+        }
+      )
+      .on('data', (events) => {
+        if (events) {
           currentGame = getState().contractStatus.currentGame;
           let players = currentGame.players;
           let quitPlayer = events.returnValues['quitPlayer'];
@@ -231,7 +241,7 @@ export const listenQuitRoom = () => async (dispatch, getState) => {
             currentGame
           });
         }
-      )
+      })
       .on('error', console.error);
   }
 };
